@@ -1,5 +1,9 @@
 # Welcome to Remix + Vite!
 
+npx create-remix@latest --template remix-run/remix/templates/unstable-vite-express
+npx storybook@latest init
+
+
 📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/future/vite) for details on supported features.
 
 ## Development
