@@ -13,6 +13,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  /** we use a custom render function to wrap our component/story in a RemixStub.
+  If you want the same RemixStub for all stories, you could also use the decorators properyt
+  of hte meta-object to do this */
   render: () => {
     const RemixStub = createRemixStub([
       {
