@@ -1,38 +1,87 @@
-# Welcome to Remix + Vite!
+# Welcome to Remix + Vite + Storybook!
 
-npx create-remix@latest --template remix-run/remix/templates/unstable-vite-express
-npx storybook@latest init
+This repo shows how to use storybook in remix. It uses the vite-express template of Remix with express server, but the same setup works with other remix templates.
 
+Below are the steps needed to get storybook working
 
-📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/future/vite) for details on supported features.
-
-## Development
-
-Run the Express server with Vite dev middleware:
-
+## Intialize remix
 ```shellscript
-npm run dev
+npx create-remix@latest --template remix-run/remix/templates/unstable-vite-express
+```
+Now you should be able to run the remix project with the command 'npm run dev'
+
+## Install and run storybook
+We can install storybook in the standard way. Note that after installing storybook, it will run with and error. We'll fix that in the next step
+```shellscript
+npx storybook@latest init
 ```
 
-## Deployment
+The reason storybook fails, is that the vite config which is used by storybook now also includes the remix plugin which is currently not supported. See the [storybook section](https://remix.run/docs/en/main/future/vite#plugin-usage-with-other-vite-based-tools-eg-vitest-storybook) in the remix docs for more info.
 
-First, build your app for production:
-
-```sh
-npm run build
+We need to remove the remix plugin when we are running storybook. The vite.config should now look like this :
+```typescript
+// vite.config.ts
+const isStorybook =
+  process.argv[1]?.includes("storybook") &&
+  process.argv[1]?.includes("node_modules");
+export default defineConfig({
+  plugins: [!isStorybook && remix(), tsconfigPaths()],
+});
 ```
 
-Then run the app in production mode:
+Note that we've added one more check to determine that storybook is running. The remix docs suggest to only check against the string "storybook", but if you have checked out your repo in a folder which also includes storybook, this is not enough. Therefor we have also added a check against the string "node_modules".
 
-```sh
-npm start
+Now you should be able to run storybook successfully
+```shellscript
+npm run storybook
 ```
 
-Now you'll need to pick a host to deploy it to.
+## Create a storybook for your route
+By default you need to place all your stories in the stories folder. Personally I like to place the story togheter with the respective component. So let's configure storybook to check for stories in our app folder:
+```typescript
+// .storybook/main.ts
+const config: StorybookConfig = {
+  stories: [
+    // ...
+    "../app/**/*.stories.@(js|jsx|mjs|ts|tsx)",
+  ],
+```
 
-### DIY
+If we want to co-locate your story with our route, we need to use a folder for the route, or else Remix will treat the story as a route. To do this we move _index.ts into a folder andre rename it to route.tsx (_index/route.tsx).
+Now we can create our story at \_index/\_index\_.stories.tsx
 
-If you're familiar with deploying Express applications you should be right at home. Just make sure to deploy the output of `npm run build`
+We can write this story in a standard way, and it should work as expected since this component is not really using much Remix specific code.
 
-- `build/server`
-- `build/client`
+## Making remix specific features work in a story
+Lets add some remix specific features to our component. We'll add a loader and a Link. See the example at [_index/route.tsx](/app/routes/_index/route.tsx)
+This will break our story. Let's fix it!
+
+First we need to install the remix testing library
+```shellscript
+npm install remix-run/remix --save-dev
+```
+
+Now we can wrap our story in a remix stub. It is ofte usefull to mock the loader data in a story. So we mock the loader function. In addition we have added a child route so it's possible to click the remix Link in the story. See exampel at [_index/_index.stories.tsx](/app/routes/_index/_index.stories.tsx)
+
+There is one last catch. When running the story, you will get an error about process not being defined. We can solve this by defining an empty proccess object when running storybook. One way to do this is to modify the vite config for storybook in main.ts
+```typescript
+// .storybook/main.ts
+const config: StorybookConfig = {
+  stories: [
+     //....
+  ],
+  // ...
+  async viteFinal(config) {
+    return mergeConfig(config, {
+      define: {
+        ...config.define,
+        'process.env': {}
+      }
+    })
+  }
+```
+
+Now you should have a working story with mocked loader data and a working Link component :)
+
+📖 See more info about REmix at [Remix docs](https://remix.run/docs) 
+
