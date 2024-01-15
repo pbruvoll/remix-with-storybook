@@ -9,7 +9,7 @@ Below are the steps needed to get Storybook working
 npx create-remix@latest --template remix-run/remix/templates/unstable-vite-express
 cd my-remix-app
 npx storybook@latest init
-npm install remix-run/remix --save-dev
+npm install @remix-run/testing --save-dev
 ```
 Look at the follwoing files in this repository :
 - [app/routes/_index/route.tsx](/app/routes/_index/route.tsx)
@@ -73,7 +73,7 @@ This will break our story. Let's fix it!
 
 First, we need to install the remix testing library
 ```shellscript
-npm install remix-run/remix --save-dev
+npm install @remix-run/testing --save-dev
 ```
 
 Now we can wrap our story in a remix stub with **createRemixStub**. It is often useful to mock the loader data in a story. So we mock the loader function. In addition, we have added a child route so it's possible to click the remix Link in the story. See example at [_index/_index.stories.tsx](/app/routes/_index/_index.stories.tsx)
